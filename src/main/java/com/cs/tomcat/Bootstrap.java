@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Bootstrap {
 
@@ -31,6 +28,7 @@ public class Bootstrap {
         try {
             logJVM();
             scanContextOnWebAppsFolder();
+            scanContextsServerXML();
             int port = 18081;
 
             //判断端口占用
@@ -116,7 +114,7 @@ public class Bootstrap {
     private static void fileHandler(String uri, Response response) {
         //处理文件
         String fileName = StrUtil.removePrefix(uri, "/");
-        File file = FileUtil.file(Constant.rootFolder, fileName);
+        File file = FileUtil.file(Constant.ROOT_FOLDER, fileName);
         if (file.exists()) {
             String fileContent = FileUtil.readUtf8String(file);
             response.getPrintWriter().println(fileContent);
@@ -167,7 +165,7 @@ public class Bootstrap {
      * 穷举文件资源，得到contextMap<名字,（名字，绝对路径）>
      */
     private static void scanContextOnWebAppsFolder() {
-        File[] folders = Constant.webappsFolder.listFiles();
+        File[] folders = Constant.WEBAPPS_FOLDER.listFiles();
         if (folders != null) {
             for (File folder : folders) {
                 if (!folder.isDirectory()) {
@@ -191,5 +189,8 @@ public class Bootstrap {
         contextMap.put(context.getPath(), context);
     }
 
+    private static void scanContextsServerXML() {
+//        List<Context> contexts =
+    }
 
 }
