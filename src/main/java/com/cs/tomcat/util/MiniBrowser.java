@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.cs.tomcat.util.MiniBrowser.getHttpString;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * 浏览器
@@ -47,12 +48,8 @@ public class MiniBrowser {
         if (null == result) {
             return null;
         }
-        try {
-            return new String(result, "utf-8").trim();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        //引入标准的UTF-8后就不用写catch了
+        return new String(result, UTF_8).trim();
     }
 
     /**
@@ -131,7 +128,7 @@ public class MiniBrowser {
                 path = "/";
             }
 
-            String firstLine = "Get" + path + "HTTP/1.1\r\n";
+            String firstLine = "Get " + path + " HTTP/1.1\r\n";
 
             //用StringBuffer() 拼装请求
             StringBuffer httpRequestString = new StringBuffer();
@@ -154,7 +151,7 @@ public class MiniBrowser {
         } catch (Exception e) {
             e.printStackTrace();
             //???
-            result = e.toString().getBytes(StandardCharsets.UTF_8);
+            result = e.toString().getBytes(UTF_8);
         }
         return result;
     }

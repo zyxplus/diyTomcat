@@ -1,5 +1,6 @@
 package com.cs.tomcat;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
@@ -7,8 +8,8 @@ import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -39,8 +40,18 @@ public class Bootstrap {
                 System.out.println("uri:" + request.getUri());
 
                 Response response = new Response();
-                String html = "Hello DIY Tomcat ";
-                response.getPrintWriter().println(html);
+
+                String uri = request.getUri();
+                if (null == uri) {
+                    continue;
+                }
+                System.out.println(uri);
+                if ("/".equals(uri)) {
+                    String html = "Hello DIY Tomcat ";
+                    response.getPrintWriter().println(html);
+                } else {
+                    fileHandler(uri, response);
+                }
 
                 handle200(s, response);
             }
@@ -58,9 +69,9 @@ public class Bootstrap {
      */
     private static void handle200(Socket s, Response response) throws IOException {
         String contentType = response.getContentType();
-        String headText = Constant.RESPONSER_HEAD_202;
+        String headText = Constant.RESPONSE_HEAD_202;
         headText = StrUtil.format(headText, contentType);
-        //把字节数据转化成字符数组
+        //把字节数据转化成字节数组
         byte[] head = headText.getBytes();
         byte[] body = response.getBody();
         byte[] responseBytes = new byte[head.length + body.length];
@@ -72,6 +83,23 @@ public class Bootstrap {
         outputStream.write(responseBytes);
         s.close();
 
+    }
+
+    /**
+     * 从Constant.rootFolder目录下面读取文件并返回
+     * @param uri
+     * @param response
+     */
+    private static void fileHandler(String uri, Response response) {
+        //处理文件
+        String fileName = StrUtil.removePrefix(uri, "/");
+        File file = FileUtil.file(Constant.rootFolder, fileName);
+        if (file.exists()) {
+            String fileContent = FileUtil.readUtf8String(file);
+            response.getPrintWriter().println(fileContent);
+        } else {
+            response.getPrintWriter().println("File not found");
+        }
     }
 
 
