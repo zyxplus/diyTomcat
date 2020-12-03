@@ -76,5 +76,18 @@ public class TestTomcat {
         Assert.assertTrue(duration < 3000);
     }
 
+    @Test
+    public void test() {
+        String uri = "cd/addg/asfg/asfg";
+        String path = StrUtil.subBetween(uri, "/", "/");
+        System.out.println(path);
+    }
+
+    @Test
+    public void testIndex() {
+        String html = "/a/index.html";
+        Assert.assertEquals(getContentString(html),"Hello DIY Tomcat from index.html@a");
+    }
+
 
 }

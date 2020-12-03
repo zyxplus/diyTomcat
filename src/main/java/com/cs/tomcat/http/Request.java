@@ -1,6 +1,8 @@
 package com.cs.tomcat.http;
 
 import cn.hutool.core.util.StrUtil;
+import com.cs.tomcat.Bootstrap;
+import com.cs.tomcat.catalina.Context;
 import com.cs.tomcat.util.MiniBrowser;
 
 import java.io.IOException;
@@ -13,6 +15,7 @@ public class Request {
     private String requestString;
     private String uri;
     private Socket socket;
+    private Context context;
 
     public Request(Socket socket) throws IOException {
         this.socket = socket;
@@ -61,4 +64,27 @@ public class Request {
     public String getRequestString() {
         return requestString;
     }
+
+    public Context getContext() {
+        return  context;
+    }
+
+    /**
+     * Bootstrap.contextMap 是静态方法，包含所有路径下的context信息
+     * 从uri获取path: "cd/addg/asfg/asfg" 返回 "addg"
+     * 把uri请求的资源与request绑定
+     */
+    private void parseContext() {
+        String path = StrUtil.subBetween(uri, "/", "/");
+        if (null == path) {
+            path = "/";
+        } else {
+            path = "/" + path;
+        }
+        context = Bootstrap.contextMap.get(path);
+        if (null == context) {
+            context = Bootstrap.contextMap.get("/");
+        }
+    }
+
 }

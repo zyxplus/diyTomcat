@@ -7,6 +7,7 @@ import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.system.SystemUtil;
+import com.cs.tomcat.catalina.Context;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
@@ -17,15 +18,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class Bootstrap {
 
+    public static Map<String, Context> contextMap = new HashMap<>();
+
     public static void main(String[] args) {
         try {
             logJVM();
+            scanContextOnWebAppsFolder();
             int port = 18081;
 
             //判断端口占用
@@ -52,6 +57,7 @@ public class Bootstrap {
                     public void run() {
                         try {
                             Request request = new Request(s);
+                            Context context = request.getContext();
                             Response response = new Response();
                             String uri = request.getUri();
                             System.out.println(uri);
@@ -59,7 +65,8 @@ public class Bootstrap {
                                 String html = "Hello DIY Tomcat ";
                                 response.getPrintWriter().println(html);
                             } else {
-                                fileHandler(uri, response);
+//                                fileHandler(uri, response);
+                                fileHandlerJUC(uri, response, context);
                             }
                             handle200(s, response);
 
@@ -124,10 +131,10 @@ public class Bootstrap {
      * @param uri
      * @param response
      */
-    private static void fileHandlerJUC(String uri, Response response) {
+    private static void fileHandlerJUC(String uri, Response response, Context context) {
         //处理文件
         String fileName = StrUtil.removePrefix(uri, "/");
-        File file = FileUtil.file(Constant.rootFolder, fileName);
+        File file = FileUtil.file(context.getDocBase(), fileName);
         if (file.exists()) {
             String fileContent = FileUtil.readUtf8String(file);
             response.getPrintWriter().println(fileContent);
@@ -154,6 +161,34 @@ public class Bootstrap {
         for (String key : keys) {
             LogFactory.get().info(key + ":\t\t" + infos.get(key));
         }
+    }
+
+    /**
+     * 穷举文件资源，得到contextMap<名字,（名字，绝对路径）>
+     */
+    private static void scanContextOnWebAppsFolder() {
+        File[] folders = Constant.webappsFolder.listFiles();
+        if (folders != null) {
+            for (File folder : folders) {
+                if (!folder.isDirectory()) {
+                    continue;
+                }
+                loadContext(folder);
+            }
+        }
+    }
+
+
+    private static void loadContext(File folder) {
+        String path = folder.getName();
+        if ("ROOT".equals(path)) {
+            path = "/";
+        } else {
+            path = "/" + path;
+        }
+        String docBase = folder.getAbsolutePath();
+        Context context = new Context(path, docBase);
+        contextMap.put(context.getPath(), context);
     }
 
 
