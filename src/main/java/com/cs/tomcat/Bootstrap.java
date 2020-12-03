@@ -1,23 +1,31 @@
 package com.cs.tomcat;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.log.LogFactory;
+import cn.hutool.system.SystemUtil;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
+import com.cs.tomcat.util.ThreadPoolUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class Bootstrap {
 
     public static void main(String[] args) {
         try {
+            logJVM();
             int port = 18081;
 
             //判断端口占用
@@ -32,28 +40,36 @@ public class Bootstrap {
             while (true) {
 
                 //接收浏览器客户端的请求
-                Socket s = ss.accept();
-                //接收浏览器的提交信息
-                Request request = new Request(s);
+                final Socket s = ss.accept();
+//                //接收浏览器的提交信息
+//                Request request = new Request(s);
+//
+//                System.out.println("浏览器输入信息: \r\n" + request.getRequestString());
+//                System.out.println("uri:" + request.getUri());
 
-                System.out.println("浏览器输入信息: \r\n" + request.getRequestString());
-                System.out.println("uri:" + request.getUri());
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Request request = new Request(s);
+                            Response response = new Response();
+                            String uri = request.getUri();
+                            System.out.println(uri);
+                            if ("/".equals(uri)) {
+                                String html = "Hello DIY Tomcat ";
+                                response.getPrintWriter().println(html);
+                            } else {
+                                fileHandler(uri, response);
+                            }
+                            handle200(s, response);
 
-                Response response = new Response();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                ThreadPoolUtil.run(runnable);
 
-                String uri = request.getUri();
-                if (null == uri) {
-                    continue;
-                }
-                System.out.println(uri);
-                if ("/".equals(uri)) {
-                    String html = "Hello DIY Tomcat ";
-                    response.getPrintWriter().println(html);
-                } else {
-                    fileHandler(uri, response);
-                }
-
-                handle200(s, response);
             }
 
         } catch (IOException e) {
@@ -99,6 +115,44 @@ public class Bootstrap {
             response.getPrintWriter().println(fileContent);
         } else {
             response.getPrintWriter().println("File not found");
+        }
+    }
+
+    /**
+     * 多线程文件读取测试
+     * 读到timeConsume.html 则挂起一秒
+     * @param uri
+     * @param response
+     */
+    private static void fileHandlerJUC(String uri, Response response) {
+        //处理文件
+        String fileName = StrUtil.removePrefix(uri, "/");
+        File file = FileUtil.file(Constant.rootFolder, fileName);
+        if (file.exists()) {
+            String fileContent = FileUtil.readUtf8String(file);
+            response.getPrintWriter().println(fileContent);
+            if (fileName.equals("timeConsume.html")) {
+                ThreadUtil.sleep(1000);
+            }
+        } else {
+            response.getPrintWriter().println("File not found");
+        }
+    }
+
+    private static void logJVM() {
+        Map<String, String> infos = new LinkedHashMap<>();
+        infos.put("Server version", "How2j DiyTomcat/1.0.1");
+        infos.put("Server built", "2020-04-08 10:20:22");
+        infos.put("Server number", "1.0.1");
+        infos.put("OS Name\t", SystemUtil.get("os.name"));
+        infos.put("OS version", SystemUtil.get("os.version"));
+        infos.put("Architecture", SystemUtil.get("java.home"));
+        infos.put("Java Home", SystemUtil.get("java home"));
+        infos.put("JVM Version", SystemUtil.get("java.runtime.version"));
+        infos.put("JVM Vendor", SystemUtil.get("java.vm.specification.vendor"));
+        Set<String> keys = infos.keySet();
+        for (String key : keys) {
+            LogFactory.get().info(key + ":\t\t" + infos.get(key));
         }
     }
 
