@@ -8,9 +8,11 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.system.SystemUtil;
 import com.cs.tomcat.catalina.Context;
+import com.cs.tomcat.catalina.Host;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
+import com.cs.tomcat.util.ServerXMLUtil;
 import com.cs.tomcat.util.ThreadPoolUtil;
 
 import java.io.File;
@@ -27,9 +29,8 @@ public class Bootstrap {
     public static void main(String[] args) {
         try {
             logJVM();
-            scanContextOnWebAppsFolder();
-            scanContextsServerXML();
             int port = 18081;
+            final Host host = new Host();
 
             //判断端口占用
             if (!NetUtil.isUsableLocalPort(port)) {
@@ -54,7 +55,7 @@ public class Bootstrap {
                     @Override
                     public void run() {
                         try {
-                            Request request = new Request(s);
+                            Request request = new Request(s, host);
                             Context context = request.getContext();
                             Response response = new Response();
                             String uri = request.getUri();
@@ -161,36 +162,5 @@ public class Bootstrap {
         }
     }
 
-    /**
-     * 穷举文件资源，得到contextMap<名字,（名字，绝对路径）>
-     */
-    private static void scanContextOnWebAppsFolder() {
-        File[] folders = Constant.WEBAPPS_FOLDER.listFiles();
-        if (folders != null) {
-            for (File folder : folders) {
-                if (!folder.isDirectory()) {
-                    continue;
-                }
-                loadContext(folder);
-            }
-        }
-    }
-
-
-    private static void loadContext(File folder) {
-        String path = folder.getName();
-        if ("ROOT".equals(path)) {
-            path = "/";
-        } else {
-            path = "/" + path;
-        }
-        String docBase = folder.getAbsolutePath();
-        Context context = new Context(path, docBase);
-        contextMap.put(context.getPath(), context);
-    }
-
-    private static void scanContextsServerXML() {
-//        List<Context> contexts =
-    }
 
 }

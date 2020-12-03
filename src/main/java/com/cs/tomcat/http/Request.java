@@ -3,6 +3,7 @@ package com.cs.tomcat.http;
 import cn.hutool.core.util.StrUtil;
 import com.cs.tomcat.Bootstrap;
 import com.cs.tomcat.catalina.Context;
+import com.cs.tomcat.catalina.Host;
 import com.cs.tomcat.util.MiniBrowser;
 
 import java.io.IOException;
@@ -16,14 +17,17 @@ public class Request {
     private String uri;
     private Socket socket;
     private Context context;
+    private Host host;
 
-    public Request(Socket socket) throws IOException {
+    public Request(Socket socket, Host host) throws IOException {
         this.socket = socket;
+        this.host = host;
         parseHttpRequest();
         if (StrUtil.isEmpty(requestString)) {
             return;
         }
-        parseUri();
+//        parseUri();
+        parseContext();
     }
 
     /**
@@ -81,9 +85,9 @@ public class Request {
         } else {
             path = "/" + path;
         }
-        context = Bootstrap.contextMap.get(path);
+        context = host.getContext(path);
         if (null == context) {
-            context = Bootstrap.contextMap.get("/");
+            context = host.getContext("/");
         }
     }
 

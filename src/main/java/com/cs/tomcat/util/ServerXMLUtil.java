@@ -18,7 +18,7 @@ public class ServerXMLUtil {
     /**
      * @return XML里的所有context
      */
-    public static List<Context> getContext() {
+    public static List<Context> getContexts() {
         List<Context> result = new ArrayList<>();
         String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
         Document d = Jsoup.parse(xml);
@@ -35,4 +35,11 @@ public class ServerXMLUtil {
     }
 
 
+    public static String getHostName() {
+        String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
+        Document d = Jsoup.parse(xml);
+        Element es = d.select("Host").first();
+        return es.attr("name");
+
+    }
 }
