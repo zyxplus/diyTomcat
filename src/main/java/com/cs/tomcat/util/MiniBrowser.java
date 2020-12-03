@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +19,10 @@ import static com.cs.tomcat.util.MiniBrowser.getHttpString;
 public class MiniBrowser {
 
     public static void main(String[] args) {
-        String url = "https://how2j.cn/k/diytomcat/diytomcat-minibrower/2462.html#nowhere";
+        String url = "http://127.0.0.1:18082";
         String contentString = getContentString(url, false);
         System.out.println(contentString);
+        System.out.println("===============");
         String httpString = getHttpString(url, false);
         System.out.println(httpString);
     }
@@ -48,6 +50,7 @@ public class MiniBrowser {
         try {
             return new String(result, "utf-8").trim();
         } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
             return null;
         }
     }
@@ -145,35 +148,38 @@ public class MiniBrowser {
 
             //client接收响应
             InputStream inputStream = client.getInputStream();
-            int buffer_size = 1024;
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            byte[] buffer = new byte[buffer_size];
-
-            while (true) {
-                int length = inputStream.read(buffer);
-                if (-1 == length) {
-                    break;
-                }
-                baos.write(buffer, 0, length);
-                if (length != buffer_size) {
-                    break;
-                }
-            }
-
-            //拷贝buffer里的响应
-            result = baos.toByteArray();
+            result = readBytes(inputStream);
             client.close();
 
-
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            //???
+            result = e.toString().getBytes(StandardCharsets.UTF_8);
         }
-
         return result;
     }
 
 
+    /**
+     * @param inputStream socket的输入流
+     * @return 字节数组
+     * @throws IOException
+     */
+    public static byte[] readBytes(InputStream inputStream) throws IOException {
+        int buffer_size = 1024;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[buffer_size];
+        while (true) {
+            int length = inputStream.read(buffer);
+            if (-1 == length) {
+                break;
+            }
+            baos.write(buffer, 0, length);
+            if (length != buffer_size) {
+                break;
+            }
+        }
+        //拷贝buffer里的响应
+        return baos.toByteArray();
+    }
 }

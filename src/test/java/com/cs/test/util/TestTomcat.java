@@ -10,7 +10,7 @@ import com.cs.tomcat.util.MiniBrowser;
 
 public class TestTomcat {
     //在IDEA debugger里面改
-    private static int port = 18080;
+    private static int port = 8084;
     private static String ip = "127.0.0.1";
 
     @BeforeClass
@@ -32,6 +32,14 @@ public class TestTomcat {
     private String getContentString(String uri) {
         String url = StrUtil.format("http://{}:{}{}",ip,port,uri);
         return MiniBrowser.getContentString(url);
+    }
+
+
+    @Test
+    public void test() {
+        String requestString = "http: akgn\r\ncda\r\n";
+        String s = StrUtil.subBetween(requestString, "", "");
+        System.out.println("result:====>" + s);
     }
 
 

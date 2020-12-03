@@ -1,6 +1,11 @@
 package com.cs.tomcat;
 
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NetUtil;
+import cn.hutool.core.util.StrUtil;
+import com.cs.tomcat.http.Request;
+import com.cs.tomcat.http.Response;
+import com.cs.tomcat.util.Constant;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +17,7 @@ public class Bootstrap {
 
     public static void main(String[] args) {
         try {
-            int port = 18080;
+            int port = 18081;
 
             //判断端口占用
             if (!NetUtil.isUsableLocalPort(port)) {
@@ -21,37 +26,53 @@ public class Bootstrap {
             }
 
             //新建socket通信
-            ServerSocket ss = new ServerSocket();
+            ServerSocket ss = new ServerSocket(port);
 
             while (true) {
+
                 //接收浏览器客户端的请求
                 Socket s = ss.accept();
                 //接收浏览器的提交信息
-                InputStream is = s.getInputStream();
-                //读取浏览器信息
-                int bufferSize = 1024;
-                byte[] buffer = new byte[bufferSize];
-                is.read(buffer);
-                //把字节数据转化成层字符串并打印
-                String requestString = new String(buffer, "UTF-8");
-                System.out.println("浏览器输入信息: \r\n" + requestString);
-                //打开输出流向客户端输出
-                OutputStream outputStream = s.getOutputStream();
-                //准备发送的数据
-                String responseHead = "HTTP/1.1 200 OK \r\n" + "Content-Type:text/html \r\n\r\n";
-                String responseString = "<div style='color:blue' >Hello DIY Tomcat!</div>";
-                requestString = responseHead + requestString;
-                //字符串转换成字节数组发出
-                outputStream.write(requestString.getBytes());
-                outputStream.flush();
-                //关闭socket
-                s.close();
-            }
+                Request request = new Request(s);
 
+                System.out.println("浏览器输入信息: \r\n" + request.getRequestString());
+                System.out.println("uri:" + request.getUri());
+
+                Response response = new Response();
+                String html = "Hello DIY Tomcat ";
+                response.getPrintWriter().println(html);
+
+                handle200(s, response);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 成功连接，把响应输出
+     * @param s
+     * @param response
+     * @throws IOException
+     */
+    private static void handle200(Socket s, Response response) throws IOException {
+        String contentType = response.getContentType();
+        String headText = Constant.RESPONSER_HEAD_202;
+        headText = StrUtil.format(headText, contentType);
+        //把字节数据转化成字符数组
+        byte[] head = headText.getBytes();
+        byte[] body = response.getBody();
+        byte[] responseBytes = new byte[head.length + body.length];
+
+        ArrayUtil.copy(head, 0, responseBytes, 0, head.length);
+        ArrayUtil.copy(body, 0, responseBytes, head.length, body.length);
+        //打开输出流向客户端输出
+        OutputStream outputStream = s.getOutputStream();
+        outputStream.write(responseBytes);
+        s.close();
+
+    }
+
 
 }
