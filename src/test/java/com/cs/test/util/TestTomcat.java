@@ -15,6 +15,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.cs.tomcat.util.MiniBrowser.getContentBytes;
 import static com.cs.tomcat.util.MiniBrowser.getHttpString;
 
 public class TestTomcat {
@@ -114,9 +115,32 @@ public class TestTomcat {
     //文件存在时会设置response里的ContentType属性
     @Test
     public void testaText() {
-        String response = getHttpString("/a.text");
+        String response = getContentString("/a.text");
         containAssert(response, "Content-Type:text/plain");
     }
+
+    @Test
+    public void testPNG() {
+        byte[] response = getContentBytes("/logo.png");
+        Assert.assertEquals(24969, response.length);
+    }
+
+    @Test
+    public void testPDF() {
+        byte[] response = getContentBytes("/etf.pdf");
+        Assert.assertEquals(3590775, response.length);
+    }
+
+    private byte[] getContentBytes(String uri) {
+        return getContentBytes(uri, false);
+    }
+
+    private byte[] getContentBytes(String uri, boolean gzip) {
+        String url = StrUtil.format("http://{}:{}{}", ip, port, uri);
+        byte[] http = MiniBrowser.getContentBytes(url, gzip);
+        return http;
+    }
+
 
 
 }

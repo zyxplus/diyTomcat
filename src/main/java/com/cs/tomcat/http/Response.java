@@ -8,6 +8,7 @@ public class Response {
     private StringWriter stringWriter;
     private PrintWriter printWriter;
     private String contentType;
+    private byte[] body;
 
     public Response() {
         this.stringWriter = new StringWriter();
@@ -23,13 +24,22 @@ public class Response {
         return printWriter;
     }
 
+    //只初始化一次
     public byte[] getBody() {
-        String content = stringWriter.toString();
-        byte[] body = content.getBytes(StandardCharsets.UTF_8);
+        if (null == body) {
+            String content = stringWriter.toString();
+            byte[] body = content.getBytes(StandardCharsets.UTF_8);
+        }
         return body;
     }
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
+
+    public void setBody(byte[] body) {
+        this.body = body;
+    }
+
+
 }

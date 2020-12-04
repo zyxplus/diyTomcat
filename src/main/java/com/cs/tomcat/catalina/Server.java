@@ -173,8 +173,9 @@ public class Server {
         String fileName = StrUtil.removePrefix(uri, "/");
         File file = FileUtil.file(context.getDocBase(), fileName);
         if (file.exists()) {
-            String fileContent = FileUtil.readUtf8String(file);
-            response.getPrintWriter().println(fileContent);
+            //文件读取成二进制，放入response的body
+            byte[] body = FileUtil.readBytes(file);
+            response.setBody(body);
             if (fileName.equals("timeConsume.html")) {
                 ThreadUtil.sleep(1000);
             }

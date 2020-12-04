@@ -145,7 +145,7 @@ public class MiniBrowser {
 
             //client接收响应
             InputStream inputStream = client.getInputStream();
-            result = readBytes(inputStream);
+            result = readBytes(inputStream, true);
             client.close();
 
         } catch (Exception e) {
@@ -162,7 +162,7 @@ public class MiniBrowser {
      * @return 字节数组
      * @throws IOException
      */
-    public static byte[] readBytes(InputStream inputStream) throws IOException {
+    public static byte[] readBytes(InputStream inputStream, boolean fully) throws IOException {
         int buffer_size = 1024;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[buffer_size];
@@ -172,7 +172,7 @@ public class MiniBrowser {
                 break;
             }
             baos.write(buffer, 0, length);
-            if (length != buffer_size) {
+            if (!fully && length != buffer_size) {
                 break;
             }
         }
