@@ -1,5 +1,6 @@
 package com.cs.tomcat.catalina;
 
+import cn.hutool.log.LogFactory;
 import com.cs.tomcat.util.Constant;
 import com.cs.tomcat.util.ServerXMLUtil;
 
@@ -11,11 +12,20 @@ import java.util.Map;
 public class Host {
     private String name;
     private Map<String, Context> contextMap;
+    private Engine engine;
 
     public Host() {
         this.contextMap = new HashMap<>();
         this.name = ServerXMLUtil.getHostName();
     }
+
+    public Host(String name, Engine engine) {
+        this.contextMap = new HashMap<>();
+        this.name = name;
+        this.engine = engine;
+    }
+
+
 
     public String getName() {
         return name;
@@ -38,13 +48,15 @@ public class Host {
      */
     private void scanContextOnWebAppsFolder() {
         File[] folders = Constant.WEBAPPS_FOLDER.listFiles();
-        if (folders != null) {
-            for (File folder : folders) {
-                if (!folder.isDirectory()) {
-                    continue;
-                }
-                loadContext(folder);
+        if (folders == null) {
+            LogFactory.get().error(new NoSuchFieldError());
+            return;
+        }
+        for (File folder : folders) {
+            if (!folder.isDirectory()) {
+                continue;
             }
+            loadContext(folder);
         }
     }
 

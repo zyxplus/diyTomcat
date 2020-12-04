@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Server>
-    <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />
-    <Host name = "127.0.0.1">
-        <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />
-    </Host>
+<!--    <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />-->
+
+    <Engine defaultHost = "localhost">
+        <Host name = "127.0.0.1">
+            <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />
+        </Host>
+    </Engine>
+
 </Server>

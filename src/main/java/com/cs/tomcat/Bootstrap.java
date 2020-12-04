@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import cn.hutool.system.SystemUtil;
 import com.cs.tomcat.catalina.Context;
+import com.cs.tomcat.catalina.Engine;
 import com.cs.tomcat.catalina.Host;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
@@ -30,8 +31,8 @@ public class Bootstrap {
         try {
             logJVM();
             int port = 18081;
-            final Host host = new Host();
-
+//            final Host host = new Host();
+            final Engine engine = new Engine();
             //判断端口占用
             if (!NetUtil.isUsableLocalPort(port)) {
                 System.out.println(port + "端口已经被占用");
@@ -45,17 +46,12 @@ public class Bootstrap {
 
                 //接收浏览器客户端的请求
                 final Socket s = ss.accept();
-//                //接收浏览器的提交信息
-//                Request request = new Request(s);
-//
-//                System.out.println("浏览器输入信息: \r\n" + request.getRequestString());
-//                System.out.println("uri:" + request.getUri());
 
                 Runnable runnable = new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            Request request = new Request(s, host);
+                            Request request = new Request(s, engine);
                             Context context = request.getContext();
                             Response response = new Response();
                             String uri = request.getUri();

@@ -78,7 +78,7 @@ public class TestTomcat {
 
     @Test
     public void test() {
-        String uri = "cd/addg/asfg/asfg";
+        String uri = "http://127.0.0.1:18080/index.html?name=gareen";
         String path = StrUtil.subBetween(uri, "/", "/");
         System.out.println(path);
     }
