@@ -74,10 +74,6 @@ public class Request {
         return uri;
     }
 
-    public String getRequestString() {
-        return requestString;
-    }
-
     public Context getContext() {
         return  context;
     }

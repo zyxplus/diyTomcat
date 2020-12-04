@@ -20,7 +20,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class MiniBrowser {
 
     public static void main(String[] args) {
-        String url = "http://127.0.0.1:18082";
+//        String url = "http://127.0.0.1:18082";
+        String url = "https://how2j.cn/k/diytomcat/diytomcat-minibrower/2462.html";
         String contentString = getContentString(url, false);
         System.out.println(contentString);
         System.out.println("===============");
@@ -116,8 +117,10 @@ public class MiniBrowser {
             requestHeaders.put("Host", u.getHost() + ":" + port);
             //告知（服务器）客户端可以处理的内容类型
             requestHeaders.put("Accept", "test/html");
+            //服务器发送完response后应该关闭
+            requestHeaders.put("Connection", "close");
             //User-Agent会告诉网站服务器，访问者是通过什么工具来请求的，如果是爬虫请求，一般会拒绝，如果是用户浏览器，就会应答
-            requestHeaders.put("User-Agent", "how2j mini brower / java1.8");
+            requestHeaders.put("User-Agent", "mini brower / java1.8");
 
             if (gzip) {
                 requestHeaders.put("Accept-Encoding", "gzip");

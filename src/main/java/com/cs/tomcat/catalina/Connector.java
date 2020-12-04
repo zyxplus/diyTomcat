@@ -1,7 +1,5 @@
 package com.cs.tomcat.catalina;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ArrayUtil;
@@ -25,40 +23,80 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class Server {
+public class Connector implements Runnable {
+
+    int port;
     private Service service;
 
-    public Server() {
-        this.service = new Service(this);
+    public Connector(Service service) {
+        this.service = service;
     }
 
-    public void start() {
-        TimeInterval timeInterval = DateUtil.timer();
-        logJVM();
-        init();
-        LogFactory.get().info("Server startup in {} ms", timeInterval.intervalMs());
+    public Service getService() {
+        return service;
     }
 
+    public void setPort(int port) {
+        this.port = port;
+    }
 
-    private static void logJVM() {
-        Map<String, String> infos = new LinkedHashMap<>();
-        infos.put("Server version", "How2j DiyTomcat/1.0.1");
-        infos.put("Server built", "2020-04-08 10:20:22");
-        infos.put("Server number", "1.0.1");
-        infos.put("OS Name\t", SystemUtil.get("os.name"));
-        infos.put("OS version", SystemUtil.get("os.version"));
-        infos.put("Architecture", SystemUtil.get("java.home"));
-        infos.put("Java Home", SystemUtil.get("java home"));
-        infos.put("JVM Version", SystemUtil.get("java.runtime.version"));
-        infos.put("JVM Vendor", SystemUtil.get("java.vm.specification.vendor"));
-        Set<String> keys = infos.keySet();
-        for (String key : keys) {
-            LogFactory.get().info(key + ":\t\t" + infos.get(key));
+    @Override
+    public void run() {
+        try {
+            int port = 18081;
+
+            //判断端口占用
+            if (!NetUtil.isUsableLocalPort(port)) {
+                System.out.println(port + "端口已经被占用");
+                return;
+            }
+
+            //新建socket通信，绑定端口
+            ServerSocket ss = new ServerSocket(port);
+
+            while (true) {
+
+                //开始监听端口
+                final Socket s = ss.accept();
+
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Request request = new Request(s, service);
+                            Context context = request.getContext();
+                            Response response = new Response();
+                            String uri = request.getUri();
+                            if ("/".equals(uri)) {
+                                //跳至欢迎页
+                                uri = WebXMLUtil.getWelcomeFile(request.getContext());
+                            } else {
+                                fileHandlerJUC(uri, response, context, s);
+                            }
+                            handle200(s, response);
+
+                        } catch (Exception e) {
+                            LogFactory.get().error(e);
+                            handle500(s, e);
+                        } finally {
+                            try {
+                                if (!s.isClosed()) {
+                                    s.close();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                };
+                ThreadPoolUtil.run(runnable);
+
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            LogFactory.get().error(e);
         }
-    }
-
-    private void init() {
-        service.start();
     }
 
 
@@ -172,4 +210,14 @@ public class Server {
             e1.printStackTrace();
         }
     }
+
+    public void init() {
+        LogFactory.get().info("Initializing protocolHanddler [http-bio-{}]", port);
+    }
+
+    public void start() {
+        LogFactory.get().info("Starting protocolHanddler [http-bio-{}]", port);
+        new Thread(this).start();
+    }
+
 }

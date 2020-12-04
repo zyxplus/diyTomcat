@@ -10,7 +10,7 @@ public class ThreadPoolUtil {
             100,
             60,
             TimeUnit.SECONDS,
-            new LinkedBlockingDeque<Runnable>());
+            new LinkedBlockingDeque<Runnable>(10));
 
     public static void run(Runnable r) {
         threadPoolExecutor.execute(r);

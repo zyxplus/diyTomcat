@@ -1,9 +1,8 @@
 package com.cs.tomcat.util;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.io.FileUtil;
-import com.cs.tomcat.catalina.Context;
-import com.cs.tomcat.catalina.Engine;
-import com.cs.tomcat.catalina.Host;
+import com.cs.tomcat.catalina.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -71,11 +70,18 @@ public class ServerXMLUtil {
         return e.attr("name");
     }
 
-    public static String getServerName() {
+    public static List<Connector> getConnectors(Service service) {
+        List<Connector> result = new ArrayList<>();
         String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
         Document d = Jsoup.parse(xml);
-        Element e = d.select("Server").first();
-        return e.attr("name");
+        Elements elements = d.select("Connector");
+        for (Element element : elements) {
+            int port = Convert.toInt(element.attr("port"));
+            Connector connector = new Connector(service);
+            connector.setPort(port);
+            result.add(connector);
+        }
+        return result;
     }
 
 
