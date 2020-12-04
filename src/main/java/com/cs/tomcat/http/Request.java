@@ -32,6 +32,10 @@ public class Request {
         //修正路径
         if (!"/".equals(context.getPath())) {
             uri = StrUtil.removePrefix(uri, context.getPath());
+            //不存在则返回根目录
+            if (StrUtil.isEmpty(uri)) {
+                uri = "/";
+            }
         }
     }
 
@@ -44,7 +48,6 @@ public class Request {
         byte[] bytes = MiniBrowser.readBytes(inputStream);
         requestString = new String(bytes, StandardCharsets.UTF_8);
     }
-
 
     /**
      *  解析uri，定位服务器上的文件：
@@ -83,6 +86,12 @@ public class Request {
      * 解析uri请求中的context
      */
     private void parseContext() {
+        Engine engine = service.getEngine();
+        Context context = engine.getDefaultHost().getContext(uri);
+        if (null != context) {
+            return;
+        }
+
         String path = StrUtil.subBetween(uri, "/", "/");
         if (null == path) {
             // 如果uri = /timeConsume.html，那么path = null， 经过此处之后path=/
@@ -91,10 +100,10 @@ public class Request {
             // uri = /dir1/1.html, 那么path= dir1， 经过此处之后path=/dir1
             path = "/" + path;
         }
-        context = service.getEngine().getDefaultHost().getContext(path);
-        if (null == context) {
+        this.context = service.getEngine().getDefaultHost().getContext(path);
+        if (null == this.context) {
             // 如果没有获取到这个context对象，那么说明目录中根本就没有这个应用,或者本身就在根目录下
-            context = service.getEngine().getDefaultHost().getContext("/");
+            this.context = service.getEngine().getDefaultHost().getContext("/");
         }
     }
 

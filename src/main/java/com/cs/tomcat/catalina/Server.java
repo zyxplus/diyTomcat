@@ -11,6 +11,7 @@ import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
 import com.cs.tomcat.util.ThreadPoolUtil;
+import com.cs.tomcat.util.WebXMLUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,10 +79,9 @@ public class Server {
                             Context context = request.getContext();
                             Response response = new Response();
                             String uri = request.getUri();
-                            System.out.println(uri);
                             if ("/".equals(uri)) {
-                                String html = "Hello DIY Tomcat ";
-                                response.getPrintWriter().println(html);
+                                //跳至欢迎页
+                                uri = WebXMLUtil.getWelcomeFile(request.getContext());
                             } else {
                                 fileHandlerJUC(uri, response, context, s);
                             }
@@ -211,7 +211,7 @@ public class Server {
             }
             //填入500response
             String text = StrUtil.format(Constant.TEXT_FORMAT_500, msg, e.toString(), stringBuffer.toString());
-            text = Constant.TEXT_FORMAT_500 + text;
+            text = Constant.RESPONSE_HEAD_500 + text;
             byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
             outputStream.write(bytes);
         } catch (IOException e1) {
