@@ -98,7 +98,7 @@ public class TestTomcat {
     }
 
     /**
-     * 需要
+     * 需要手动throw exception
      */
     @Test
     public void test500() {
@@ -111,6 +111,12 @@ public class TestTomcat {
         Assert.assertTrue(match);
     }
 
+    //文件存在时会设置response里的ContentType属性
+    @Test
+    public void testaText() {
+        String response = getHttpString("/a.text");
+        containAssert(response, "Content-Type:text/plain");
+    }
 
 
 }

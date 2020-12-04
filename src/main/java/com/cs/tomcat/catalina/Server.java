@@ -151,6 +151,9 @@ public class Server {
         String fileName = StrUtil.removePrefix(uri, "/");
         File file = FileUtil.file(Constant.ROOT_FOLDER, fileName);
         if (file.exists()) {
+            //获取拓展名
+            String extName = FileUtil.extName(file);
+
             String fileContent = FileUtil.readUtf8String(file);
             response.getPrintWriter().println(fileContent);
         } else {
