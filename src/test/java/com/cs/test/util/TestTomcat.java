@@ -96,6 +96,16 @@ public class TestTomcat {
         String response = getHttpString("/not_exist.html");
         containAssert(response, "HTTP/1.1 404 Not Found");
     }
+
+    /**
+     * 需要
+     */
+    @Test
+    public void test500() {
+        String response = getHttpString("/500.html");
+        containAssert(response, "HTTP/1.1 404 Not Found");
+    }
+
     private void containAssert(String html, String string) {
         boolean match = StrUtil.containsAny(html, string);
         Assert.assertTrue(match);

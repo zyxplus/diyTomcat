@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -82,13 +83,13 @@ public class Server {
                                 String html = "Hello DIY Tomcat ";
                                 response.getPrintWriter().println(html);
                             } else {
-//                                fileHandler(uri, response);
                                 fileHandlerJUC(uri, response, context, s);
                             }
                             handle200(s, response);
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (Exception e) {
+                            LogFactory.get().error(e);
+                            handle500(s, e);
                         } finally {
                             try {
                                 if (!s.isClosed()) {
@@ -113,28 +114,35 @@ public class Server {
 
     /**
      * 成功连接，把响应输出
+     *
      * @param s
      * @param response
      * @throws IOException
      */
-    private static void handle200(Socket s, Response response) throws IOException {
-        String contentType = response.getContentType();
-        String headText = Constant.RESPONSE_HEAD_202;
-        headText = StrUtil.format(headText, contentType);
-        //把字节数据转化成字节数组
-        byte[] head = headText.getBytes();
-        byte[] body = response.getBody();
-        byte[] responseBytes = new byte[head.length + body.length];
+    private static void handle200(Socket s, Response response) {
+        try {
+            String contentType = response.getContentType();
+            String headText = Constant.RESPONSE_HEAD_202;
+            headText = StrUtil.format(headText, contentType);
+            //把字节数据转化成字节数组
+            byte[] head = headText.getBytes();
+            byte[] body = response.getBody();
+            byte[] responseBytes = new byte[head.length + body.length];
 
-        ArrayUtil.copy(head, 0, responseBytes, 0, head.length);
-        ArrayUtil.copy(body, 0, responseBytes, head.length, body.length);
-        //打开输出流向客户端输出
-        OutputStream outputStream = s.getOutputStream();
-        outputStream.write(responseBytes);
+            ArrayUtil.copy(head, 0, responseBytes, 0, head.length);
+            ArrayUtil.copy(body, 0, responseBytes, head.length, body.length);
+            //打开输出流向客户端输出
+            OutputStream outputStream = null;
+            outputStream = s.getOutputStream();
+            outputStream.write(responseBytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * 从Constant.rootFolder目录下面读取文件并返回
+     *
      * @param uri
      * @param response
      */
@@ -153,10 +161,11 @@ public class Server {
     /**
      * 多线程文件读取测试
      * 读到timeConsume.html 则挂起一秒
+     *
      * @param uri
      * @param response
      */
-    private static void fileHandlerJUC(String uri, Response response, Context context, Socket s) {
+    private static void fileHandlerJUC(String uri, Response response, Context context, Socket s) throws IOException {
         //处理文件
         String fileName = StrUtil.removePrefix(uri, "/");
         File file = FileUtil.file(context.getDocBase(), fileName);
@@ -172,9 +181,41 @@ public class Server {
         }
     }
 
-    private static void handle404(Socket s, String uri) {
-
+    private static void handle404(Socket s, String uri) throws IOException {
+        OutputStream outputStream = s.getOutputStream();
+        String responseText = StrUtil.format(Constant.TEXT_FORMAT_404, uri, uri);
+        responseText = Constant.RESPONSE_HEAD_404 + responseText;
+        byte[] bytes = responseText.getBytes(StandardCharsets.UTF_8);
+        outputStream.write(bytes);
     }
 
+    private static void handle500(Socket s, Exception e) {
+        try {
+            OutputStream outputStream = s.getOutputStream();
+            StackTraceElement[] stackTraces = e.getStackTrace();
+            StringBuffer stringBuffer = new StringBuffer();
+            //Exception名字
+            stringBuffer.append(e.toString());
+            stringBuffer.append("\r\n");
 
+            //Exception详情
+            for (StackTraceElement stackTrace : stackTraces) {
+                stringBuffer.append("\t");
+                stringBuffer.append(stackTrace.toString());
+                stringBuffer.append("\r\n");
+            }
+            String msg = e.getMessage();
+
+            if (null != msg && msg.length() > 0) {
+                msg = msg.substring(0, 19);
+            }
+            //填入500response
+            String text = StrUtil.format(Constant.TEXT_FORMAT_500, msg, e.toString(), stringBuffer.toString());
+            text = Constant.TEXT_FORMAT_500 + text;
+            byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+            outputStream.write(bytes);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
 }
