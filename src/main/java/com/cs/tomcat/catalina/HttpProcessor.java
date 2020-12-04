@@ -9,6 +9,7 @@ import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
 import com.cs.tomcat.util.WebXMLUtil;
+import com.cs.tomcat.webappservlet.HelloServlet;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,12 +25,17 @@ public class HttpProcessor {
             if (null == uri) {
                 return;
             }
-
-            if ("/".equals(uri)) {
-                //跳至欢迎页
-                uri = WebXMLUtil.getWelcomeFile(request.getContext());
+            //HelloServlet处理
+            if ("/hello".equals(uri)) {
+                HelloServlet helloServlet = new HelloServlet();
+                helloServlet.doGet(request, response);
             } else {
-                fileHandlerJUC(uri, response, context, s);
+                //跳至欢迎页
+                if ("/".equals(uri)) {
+                    uri = WebXMLUtil.getWelcomeFile(request.getContext());
+                } else {
+                    fileHandlerJUC(uri, response, context, s);
+                }
             }
             handle200(s, response);
         } catch (Exception e) {
