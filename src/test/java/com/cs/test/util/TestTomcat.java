@@ -15,6 +15,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.cs.tomcat.util.MiniBrowser.getHttpString;
+
 public class TestTomcat {
     //在IDEA debugger里面改
     private static int port = 18081;
@@ -88,6 +90,17 @@ public class TestTomcat {
         String html = "/a/index.html";
         Assert.assertEquals(getContentString(html),"Hello DIY Tomcat from index.html@a");
     }
+
+    @Test
+    public void test404() {
+        String response = getHttpString("/not_exist.html");
+        containAssert(response, "HTTP/1.1 404 Not Found");
+    }
+    private void containAssert(String html, String string) {
+        boolean match = StrUtil.containsAny(html, string);
+        Assert.assertTrue(match);
+    }
+
 
 
 }

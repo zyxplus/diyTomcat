@@ -61,12 +61,12 @@ public class Server {
                 return;
             }
 
-            //新建socket通信
+            //新建socket通信，绑定端口
             ServerSocket ss = new ServerSocket(port);
 
             while (true) {
 
-                //接收浏览器客户端的请求
+                //开始监听端口
                 final Socket s = ss.accept();
 
                 Runnable runnable = new Runnable() {
@@ -83,12 +83,20 @@ public class Server {
                                 response.getPrintWriter().println(html);
                             } else {
 //                                fileHandler(uri, response);
-                                fileHandlerJUC(uri, response, context);
+                                fileHandlerJUC(uri, response, context, s);
                             }
                             handle200(s, response);
 
                         } catch (IOException e) {
                             e.printStackTrace();
+                        } finally {
+                            try {
+                                if (!s.isClosed()) {
+                                    s.close();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 };
@@ -123,8 +131,6 @@ public class Server {
         //打开输出流向客户端输出
         OutputStream outputStream = s.getOutputStream();
         outputStream.write(responseBytes);
-        s.close();
-
     }
 
     /**
@@ -150,7 +156,7 @@ public class Server {
      * @param uri
      * @param response
      */
-    private static void fileHandlerJUC(String uri, Response response, Context context) {
+    private static void fileHandlerJUC(String uri, Response response, Context context, Socket s) {
         //处理文件
         String fileName = StrUtil.removePrefix(uri, "/");
         File file = FileUtil.file(context.getDocBase(), fileName);
@@ -161,8 +167,13 @@ public class Server {
                 ThreadUtil.sleep(1000);
             }
         } else {
-            response.getPrintWriter().println("File not found");
+//            response.getPrintWriter().println("File not found");
+            handle404(s, uri);
         }
+    }
+
+    private static void handle404(Socket s, String uri) {
+
     }
 
 
