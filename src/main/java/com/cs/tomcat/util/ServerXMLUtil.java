@@ -47,8 +47,8 @@ public class ServerXMLUtil {
     public static String getEngineDefaultHost() {
         String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
         Document d = Jsoup.parse(xml);
-        Element engine = d.select("Engine").first();
-        return engine.attr("defaultHost");
+        Element e = d.select("Engine").first();
+        return e.attr("defaultHost");
     }
 
     public static List<Host> getHosts(Engine engine) {
@@ -67,8 +67,15 @@ public class ServerXMLUtil {
     public static String getServiceName() {
         String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
         Document d = Jsoup.parse(xml);
-        Element engine = d.select("Service").first();
-        return engine.attr("name");
+        Element e = d.select("Service").first();
+        return e.attr("name");
+    }
+
+    public static String getServerName() {
+        String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
+        Document d = Jsoup.parse(xml);
+        Element e = d.select("Server").first();
+        return e.attr("name");
     }
 
 
