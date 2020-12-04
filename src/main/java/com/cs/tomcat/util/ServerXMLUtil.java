@@ -64,4 +64,12 @@ public class ServerXMLUtil {
         return result;
     }
 
+    public static String getServiceName() {
+        String xml = FileUtil.readUtf8String(Constant.SERVER_XML_FILE);
+        Document d = Jsoup.parse(xml);
+        Element engine = d.select("Service").first();
+        return engine.attr("name");
+    }
+
+
 }

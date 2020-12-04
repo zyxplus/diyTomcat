@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.cs.tomcat.Bootstrap;
 import com.cs.tomcat.catalina.Context;
 import com.cs.tomcat.catalina.Engine;
+import com.cs.tomcat.catalina.Service;
 import com.cs.tomcat.util.MiniBrowser;
 
 import java.io.IOException;
@@ -17,11 +18,11 @@ public class Request {
     private String uri;
     private Socket socket;
     private Context context;
-    private Engine engine;
+    private Service service;
 
-    public Request(Socket socket, Engine engine) throws IOException {
+    public Request(Socket socket, Service service) throws IOException {
         this.socket = socket;
-        this.engine = engine;
+        this.service = service;
         parseHttpRequest();
         if (StrUtil.isEmpty(requestString)) {
             return;
@@ -90,10 +91,10 @@ public class Request {
             // uri = /dir1/1.html, 那么path= dir1， 经过此处之后path=/dir1
             path = "/" + path;
         }
-        context = engine.getDefaultHost().getContext(path);
+        context = service.getEngine().getDefaultHost().getContext(path);
         if (null == context) {
             // 如果没有获取到这个context对象，那么说明目录中根本就没有这个应用,或者本身就在根目录下
-            context = engine.getDefaultHost().getContext("/");
+            context = service.getEngine().getDefaultHost().getContext("/");
         }
     }
 

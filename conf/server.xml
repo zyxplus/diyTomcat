@@ -2,10 +2,11 @@
 <Server>
 <!--    <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />-->
 
-    <Engine defaultHost = "localhost">
-        <Host name = "127.0.0.1">
-            <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />
-        </Host>
-    </Engine>
-
+    <Service name="Catalina">
+        <Engine defaultHost = "localhost">
+            <Host name = "127.0.0.1">
+                <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />
+            </Host>
+        </Engine>
+    </Service>
 </Server>
