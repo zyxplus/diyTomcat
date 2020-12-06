@@ -14,7 +14,9 @@ import com.cs.tomcat.util.MiniBrowser;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
@@ -228,4 +230,95 @@ public class Request extends BaseRequest {
         }
     }
 
+    @Override
+    public String getLocalName() {
+        return socket.getLocalAddress().getHostName();
+    }
+
+    @Override
+    public String getLocalAddr() {
+        return socket.getLocalAddress().getHostAddress();
+    }
+
+    @Override
+    public int getLocalPort() {
+        return socket.getLocalPort();
+    }
+
+    @Override
+    public String getProtocol() {
+        return "HTTP:/1.1";
+    }
+
+    @Override
+    public String getRemoteAddr() {
+        InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
+        String temp = isa.getAddress().toString();
+        return StrUtil.subAfter(temp, "/", false);
+    }
+
+    @Override
+    public String getRemoteHost() {
+        InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
+        return isa.getHostName();
+    }
+
+    @Override
+    public int getRemotePort() {
+        return socket.getPort();
+    }
+
+    @Override
+    public String getScheme() {
+        return "http";
+    }
+
+    @Override
+    public String getServerName() {
+        return getHeader("host").trim();
+    }
+
+    @Override
+    public int getServerPort() {
+        return getLocalPort();
+    }
+
+    @Override
+    public String getContextPath() {
+        String result = this.context.getPath();
+        if ("/".equals(result)) {
+            return "";
+        }
+        return result;
+    }
+
+    @Override
+    public String getRequestURI() {
+        return uri;
+    }
+
+    @Override
+    public StringBuffer getRequestURL() {
+        StringBuffer url = new StringBuffer();
+        String scheme = getScheme();
+        int port = getServerPort();
+        if (port < 0) {
+            port = 80;
+        }
+        url.append(scheme);
+        url.append("//");
+        url.append(getServerName());
+        if (((scheme.equals("http")) && (port != 80)) || (scheme.equals("https")) && (port != 80)) {
+            url.append(':');
+            url.append(port);
+        }
+        url.append(getRequestURI());
+        return url;
+    }
+
+    @Override
+    public String getServletPath() {
+        return uri;
+    }
 }
+
