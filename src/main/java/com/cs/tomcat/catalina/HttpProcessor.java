@@ -6,6 +6,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
+import com.cs.tomcat.http.InvokerServlet;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
@@ -30,8 +31,7 @@ public class HttpProcessor {
             //web.XML中存在的话，需要通过反射创建对象servlet容器
             String servletClassName = context.getServletClassName(uri);
             if (null != servletClassName) {
-                Object servletObject = ReflectUtil.newInstance(servletClassName);
-                ReflectUtil.invoke(servletObject, "doGet", request, response);
+                InvokerServlet.getInstance().service(request, response);
             } else {
                 //HelloServlet处理
                 if ("/hello".equals(uri)) {

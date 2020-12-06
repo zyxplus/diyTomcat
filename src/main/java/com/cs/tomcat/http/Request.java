@@ -28,6 +28,8 @@ public class Request extends BaseRequest {
     private Socket socket;
     private Context context;
     private Service service;
+    //请求方式
+    private String method;
 
     public Request(Socket socket, Service service) throws IOException {
         this.socket = socket;
@@ -38,6 +40,7 @@ public class Request extends BaseRequest {
         }
         parseUri();
         parseContext();
+        parseMethod();
         //修正路径
         if (!"/".equals(context.getPath())) {
             uri = StrUtil.removePrefix(uri, context.getPath());
@@ -110,6 +113,15 @@ public class Request extends BaseRequest {
             // 如果没有获取到这个context对象，那么说明目录中根本就没有这个应用,或者本身就在根目录下
             this.context = service.getEngine().getDefaultHost().getContext("/");
         }
+    }
+
+    private void parseMethod() {
+        method = StrUtil.subBefore(requestString, " ", false);
+    }
+
+    @Override
+    public String getMethod() {
+        return method;
     }
 
 
