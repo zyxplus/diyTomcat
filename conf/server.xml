@@ -10,7 +10,7 @@
             <Engine defaultHost = "localhost">
                 <Host name = "127.0.0.1">
                     <Context path="/b" docBase="/Users/pc/Desktop/ZYX/kJava/PROJECT_SEVEN/diyTomcat/webapps/ROOT/b" />
-                    <Context path="/javaweb" docBase="/Users/chushi/develop/IdeaProjects/javaweb/web" />
+                    <Context path="/javaweb" docBase="/Users/chushi/develop/IdeaProjects/javaweb/web" reloadable="true"/>
                 </Host>
             </Engine>
         </Service>

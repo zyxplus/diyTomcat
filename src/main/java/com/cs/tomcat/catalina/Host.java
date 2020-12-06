@@ -14,18 +14,13 @@ public class Host {
     private Map<String, Context> contextMap;
     private Engine engine;
 
-    public Host() {
-        this.contextMap = new HashMap<>();
-        this.name = ServerXMLUtil.getHostName();
-    }
-
     public Host(String name, Engine engine) {
         this.contextMap = new HashMap<>();
         this.name = name;
         this.engine = engine;
+        scanContextOnWebAppsFolder();
+        scanContextsServerXML();
     }
-
-
 
     public String getName() {
         return name;
@@ -68,12 +63,12 @@ public class Host {
             path = "/" + path;
         }
         String docBase = folder.getAbsolutePath();
-        Context context = new Context(path, docBase);
+        Context context = new Context(path, docBase, this, true);
         contextMap.put(context.getPath(), context);
     }
 
     private void scanContextsServerXML() {
-        List<Context> contexts = ServerXMLUtil.getContexts();
+        List<Context> contexts = ServerXMLUtil.getContexts(this);
         for (Context context : contexts) {
             contextMap.put(context.getPath(), context);
         }
@@ -81,6 +76,20 @@ public class Host {
 
     public Context getContext(String path) {
         return contextMap.get(path);
+    }
+
+    /** 重新构建Context
+     * @param context
+     */
+    public void reload(Context context) {
+        String path = context.getPath();
+        String docBase = context.getDocBase();
+        boolean reloadable = context.isReloadable();
+        context.stop();
+        contextMap.remove(path);
+        Context newContext = new Context(path, docBase, this, reloadable);
+        contextMap.put(newContext.getPath(), newContext);
+
     }
 
 }
