@@ -1,5 +1,7 @@
 package com.cs.tomcat.http;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
@@ -11,10 +13,7 @@ import com.cs.tomcat.util.MiniBrowser;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -30,11 +29,13 @@ public class Request extends BaseRequest {
     private String method;
     private String queryString;
     private Map<String, String[]> parameterMap;
+    private Map<String, String> headerMap;
 
     public Request(Socket socket, Service service) throws IOException {
         this.socket = socket;
         this.service = service;
         this.parameterMap = new HashMap<>();
+        this.headerMap = new HashMap<>();
         parseHttpRequest();
         if (StrUtil.isEmpty(requestString)) {
             return;
@@ -51,6 +52,8 @@ public class Request extends BaseRequest {
             }
         }
         parseParameters();
+        parseHeaders();
+
     }
 
     /**
@@ -193,6 +196,36 @@ public class Request extends BaseRequest {
     @Override
     public String[] getParameterValues(String name) {
         return parameterMap.get(name);
+    }
+
+    @Override
+    public String getHeader(String name) {
+        if (null == name) {
+            return null;
+        }
+        name = name.toLowerCase();
+        return headerMap.get(name);
+    }
+
+    @Override
+    public int getIntHeader(String name) {
+        String value = headerMap.get(name);
+        return Convert.toInt(value, 0);
+    }
+
+    public void parseHeaders(){
+        StringReader stringReader = new StringReader(requestString);
+        List<String> lines = new ArrayList<>();
+        IoUtil.readLines(stringReader, lines);
+        for (String line : lines) {
+            if (line.length() == 0) {
+                break;
+            }
+            String[] segs = line.split(":");
+            String headerName = segs[0].toLowerCase();
+            String headerValue = segs[1];
+            headerMap.put(headerName, headerValue);
+        }
     }
 
 }

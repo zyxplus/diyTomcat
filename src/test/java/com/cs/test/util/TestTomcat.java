@@ -182,6 +182,10 @@ public class TestTomcat {
         Assert.assertEquals(html, "get name:cs");
     }
 
-
+    @Test
+    public void testHeader() {
+        String html = getContentString("/javaweb/header");
+        Assert.assertEquals(html, "mini brow / java1.8");
+    }
 
 }
