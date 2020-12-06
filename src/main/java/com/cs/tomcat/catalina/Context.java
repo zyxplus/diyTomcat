@@ -17,6 +17,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServlet;
 import java.io.File;
 import java.lang.annotation.Documented;
 import java.util.*;
@@ -43,6 +44,8 @@ public class Context {
 
     private ServletContext servletContext;
 
+    private Map<Class<?>, HttpServlet> servletPool;
+
     public Context(String path, String docBase, Host host, boolean reloadable) {
         TimeInterval timeInterval = DateUtil.timer();
         this.path = path;
@@ -54,6 +57,7 @@ public class Context {
         this.className_servletName = new HashMap<>();
         this.host = host;
         this.reloadable = reloadable;
+        this.servletPool = new HashMap<>();
 
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         this.webappClassLoader = new WebappClassLoader(docBase, contextClassLoader);
@@ -184,5 +188,14 @@ public class Context {
 
     public ServletContext getServletContext() {
         return servletContext;
+    }
+
+    public synchronized HttpServlet getServlet(Class<?> clazz) throws IllegalAccessException, InstantiationException {
+        HttpServlet servlet = servletPool.get(clazz);
+        if (null == servlet) {
+            servlet = (HttpServlet) clazz.newInstance();
+            servletPool.put(clazz, servlet);
+        }
+        return servlet;
     }
 }
