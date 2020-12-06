@@ -8,6 +8,7 @@ import cn.hutool.log.LogFactory;
 import com.cs.tomcat.catalina.classloader.WebappClassLoader;
 import com.cs.tomcat.catalina.exception.WebConfigDuplicatedException;
 import com.cs.tomcat.catalina.watcher.ContextFileChangeWatcher;
+import com.cs.tomcat.http.ApplicationContext;
 import com.cs.tomcat.util.Constant;
 import com.cs.tomcat.util.ContextXMLUtil;
 import org.jsoup.Jsoup;
@@ -15,6 +16,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import javax.servlet.ServletContext;
 import java.io.File;
 import java.lang.annotation.Documented;
 import java.util.*;
@@ -39,6 +41,8 @@ public class Context {
 
     private ContextFileChangeWatcher contextFileChangeWatcher;
 
+    private ServletContext servletContext;
+
     public Context(String path, String docBase, Host host, boolean reloadable) {
         TimeInterval timeInterval = DateUtil.timer();
         this.path = path;
@@ -54,6 +58,7 @@ public class Context {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         this.webappClassLoader = new WebappClassLoader(docBase, contextClassLoader);
 
+        this.servletContext = new ApplicationContext(this);
         deploy();
 
     }
@@ -177,4 +182,7 @@ public class Context {
         contextFileChangeWatcher.stop();
     }
 
+    public ServletContext getServletContext() {
+        return servletContext;
+    }
 }

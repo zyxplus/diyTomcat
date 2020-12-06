@@ -124,5 +124,15 @@ public class Request extends BaseRequest {
         return method;
     }
 
+    @Override
+    public String getRealPath(String path) {
+        return context.getServletContext().getRealPath(path);
+    }
+
+    @Override
+    public ServletContext getServletContext() {
+        return context.getServletContext();
+    }
+
 
 }
