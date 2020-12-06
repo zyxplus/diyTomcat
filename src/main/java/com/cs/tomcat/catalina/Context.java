@@ -50,6 +50,8 @@ public class Context {
 
     private Map<String, Map<String, String>> servletClassNameInitParams;
 
+    private List<String> loadOnStartupServletClassNames;
+
     public Context(String path, String docBase, Host host, boolean reloadable) {
         TimeInterval timeInterval = DateUtil.timer();
         this.path = path;
@@ -68,6 +70,7 @@ public class Context {
         this.webappClassLoader = new WebappClassLoader(docBase, contextClassLoader);
 
         this.servletContext = new ApplicationContext(this);
+        this.loadOnStartupServletClassNames = new ArrayList<>();
         deploy();
 
     }
@@ -153,17 +156,15 @@ public class Context {
         Document document = Jsoup.parse(xml);
         parseServletMapping(document);
         parseServletInitParams(document);
+        parseLoadOnStartup(document);
+        handleLoadOnStartup();
     }
 
     private void deploy() {
-//        TimeInterval timeInterval = DateUtil.timer();
-//        LogFactory.get().info("Deploying web application directory:{}", this.docBase);
         init();
-//        LogFactory.get().info("Deploying web application directory:{} has finished in {}ms",
-//                this.getDocBase(), timeInterval.intervalMs());
         if (isReloadable()) {
             contextFileChangeWatcher = new ContextFileChangeWatcher(this);
-//            contextFileChangeWatcher
+            contextFileChangeWatcher.start();
         }
     }
 
@@ -229,4 +230,29 @@ public class Context {
 
     }
 
+    /** 自启动类
+     * @param d
+     */
+    private void parseLoadOnStartup(Document d) {
+        Elements es = d.select("load-on-startup");
+        for (Element e : es) {
+            String loadOnStartupServletClassName = e.parent().select("servlet-class").text();
+            loadOnStartupServletClassNames.add(loadOnStartupServletClassName);
+        }
+    }
+
+
+    /**
+     * 自启动类被webappClassLoader加载
+     */
+    public void handleLoadOnStartup() {
+        for (String loadOnStartupServletClassName : loadOnStartupServletClassNames) {
+            try {
+                Class<?> clazz = webappClassLoader.loadClass(loadOnStartupServletClassName);
+                getServlet(clazz);
+            } catch (ClassNotFoundException|IllegalAccessException|ServletException|InstantiationException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
