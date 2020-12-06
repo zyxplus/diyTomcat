@@ -11,6 +11,8 @@ import org.junit.Test;
 
 import com.cs.tomcat.util.MiniBrowser;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -156,6 +158,28 @@ public class TestTomcat {
     public void testHelloServlet() {
         String html = getContentString("/j2ee/hello");
         Assert.assertEquals(html, "Hello DIY Tomcat!");
+    }
+
+    @Test
+    public void testGetParam() {
+        String uri = "/javaweb/param";
+        String url = StrUtil.format("http://{}:{}{}", ip, port, uri);
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", "cs");
+        String html = MiniBrowser.getContentString(url, params, true);
+        System.out.println("html:" + html);
+        Assert.assertEquals(html, "get name:cs");
+    }
+
+    @Test
+    public void testPutParam() {
+        String uri = "/javaweb/param";
+        String url = StrUtil.format("http://{}:{}{}", ip, port, uri);
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", "cs");
+        String html = MiniBrowser.getContentString(url, params, false);
+        System.out.println("html:" + html);
+        Assert.assertEquals(html, "get name:cs");
     }
 
 

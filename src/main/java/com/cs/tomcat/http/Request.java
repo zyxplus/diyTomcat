@@ -1,6 +1,8 @@
 package com.cs.tomcat.http;
 
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import com.cs.tomcat.Bootstrap;
 import com.cs.tomcat.catalina.Context;
 import com.cs.tomcat.catalina.Engine;
@@ -16,10 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class Request extends BaseRequest {
 
@@ -28,12 +27,14 @@ public class Request extends BaseRequest {
     private Socket socket;
     private Context context;
     private Service service;
-    //请求方式
     private String method;
+    private String queryString;
+    private Map<String, String[]> parameterMap;
 
     public Request(Socket socket, Service service) throws IOException {
         this.socket = socket;
         this.service = service;
+        this.parameterMap = new HashMap<>();
         parseHttpRequest();
         if (StrUtil.isEmpty(requestString)) {
             return;
@@ -49,6 +50,7 @@ public class Request extends BaseRequest {
                 uri = "/";
             }
         }
+        parseParameters();
     }
 
     /**
@@ -134,5 +136,63 @@ public class Request extends BaseRequest {
         return context.getServletContext();
     }
 
+    /**
+     * 把URL里面的参数存到 parameterMap
+     */
+    private void parseParameters() {
+        if ("GET".equals(this.getMethod())) {
+            String url = StrUtil.subBetween(requestString, " ", " ");
+            if (StrUtil.contains(url, '?')) {
+                queryString = StrUtil.subAfter(url, '?', false);
+            }
+        }
+        if ("POST".equals(this.getMethod())) {
+            StrUtil.subAfter(requestString, "\r\n\r\n", false);
+        }
+        if (null == queryString || 0 == queryString.length()) {
+            return;
+        }
+
+        queryString = URLUtil.decode(queryString);
+        String[] parameterValues = queryString.split("&");
+        if (null != parameterValues) {
+            for (String parameterValue : parameterValues) {
+                String[] nameValues = parameterValue.split("=");
+                String name = nameValues[0];
+                String value = nameValues[1];
+                String[] values = parameterMap.get(name);
+                if (null == values) {
+                    values = new String[]{value};
+                    parameterMap.put(name, values);
+                } else {
+                    values = ArrayUtil.append(values, value);
+                    parameterMap.put(name, values);
+                }
+            }
+        }
+    }
+
+    @Override
+    public String getParameter(String name) {
+        String[] values = parameterMap.get(name);
+        if (null != values && 0 != values.length) {
+            return values[0];
+        }
+        return null;
+    }
+
+    @Override
+    public Map getParameterMap() {
+        return parameterMap;
+    }
+
+    public Enumeration getParameternames() {
+        return Collections.enumeration(parameterMap.keySet());
+    }
+
+    @Override
+    public String[] getParameterValues(String name) {
+        return parameterMap.get(name);
+    }
 
 }

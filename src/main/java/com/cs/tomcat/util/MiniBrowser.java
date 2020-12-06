@@ -1,5 +1,8 @@
 package com.cs.tomcat.util;
 
+import cn.hutool.http.HttpUtil;
+import cn.hutool.log.LogFactory;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -29,12 +32,30 @@ public class MiniBrowser {
         System.out.println(httpString);
     }
 
+
+    public static byte[] getContentBytes(String url, Map<String, Object> params, boolean isGet) {
+        return getContentBytes(url, false, params, isGet);
+    }
+
+    public static byte[] getContentBytes(String url, boolean gzip) {
+        return getContentBytes(url, gzip, null, true);
+    }
+
     public static byte[] getContentBytes(String url) {
-        return getContentBytes(url, false);
+        return getContentBytes(url, false, null, true);
+    }
+
+
+    public static String getContentString(String url, Map<String, Object> params, boolean isGet) {
+        return getContentString(url, false, params, isGet);
+    }
+
+    public static String getContentString(String url, boolean gzip) {
+        return getContentString(url, gzip, null, true);
     }
 
     public static String getContentString(String url) {
-        return getContentString(url, false);
+        return getContentString(url, false, null, true);
     }
 
 
@@ -44,8 +65,8 @@ public class MiniBrowser {
      * @param gzip
      * @return
      */
-    public static String getContentString(String url, boolean gzip) {
-        byte[] result = getContentBytes(url, gzip);
+    public static String getContentString(String url, boolean gzip, Map<String, Object> params, boolean isGet) {
+        byte[] result = getContentBytes(url, gzip, params, isGet);
         if (null == result) {
             return null;
         }
@@ -59,8 +80,8 @@ public class MiniBrowser {
      * @param gzip
      * @return
      */
-    public static byte[] getContentBytes(String url, boolean gzip) {
-        byte[] response = getHttpBytes(url, gzip);
+    public static byte[] getContentBytes(String url, boolean gzip, Map<String, Object> params, boolean isGet) {
+        byte[] response = getHttpBytes(url, gzip, params, isGet);
         byte[] doubleReturn = "\r\n\r\n".getBytes();
         int pos = -1;
         for (int i = 0; i < response.length - doubleReturn.length; i++) {
@@ -80,13 +101,18 @@ public class MiniBrowser {
         return result;
     }
 
+    public static String getHttpString(String url, boolean gzip, Map<String, Object> params, boolean isGet) {
+        byte[] bytes = getHttpBytes(url, gzip, params, isGet);
+        return new String(bytes).trim();
+    }
+
     public static String getHttpString(String url, boolean gzip) {
-        byte[] bytes = getHttpBytes(url, gzip);
+        byte[] bytes = getHttpBytes(url, gzip, null, true);
         return new String(bytes).trim();
     }
 
     public static String getHttpString(String url) {
-        return getHttpString(url, false);
+        return getHttpString(url, false, null, true);
     }
 
     /**
@@ -99,7 +125,8 @@ public class MiniBrowser {
      * @param gzip
      * @return
      */
-    public static byte[] getHttpBytes(String url, boolean gzip) {
+    public static byte[] getHttpBytes(String url, boolean gzip, Map<String, Object> params, boolean isGet) {
+
         byte[] result = null;
         try {
             URL u = new URL(url);
@@ -131,7 +158,14 @@ public class MiniBrowser {
                 path = "/";
             }
 
-            String firstLine = "Get " + path + " HTTP/1.1\r\n";
+
+            if (null != params && isGet) {
+                String paramString = HttpUtil.toParams(params);
+                path = path + "?" + paramString;
+            }
+
+            String method = isGet ? "GET" : "POST";
+            String firstLine = method + " " + path + " HTTP/1.1\r\n";
 
             //用StringBuffer() 拼装请求
             StringBuffer httpRequestString = new StringBuffer();
@@ -140,6 +174,13 @@ public class MiniBrowser {
             for (String header : headers) {
                 String headerLine = header + ":" + requestHeaders.get(header) + "\r\n";
                 httpRequestString.append(headerLine);
+            }
+
+            //写入请求参数
+            if (null != params && !isGet) {
+                String paramString = HttpUtil.toParams(params);
+                httpRequestString.append("\r\n");
+                httpRequestString.append(paramString);
             }
 
             //client发出请求信息
@@ -152,8 +193,7 @@ public class MiniBrowser {
             client.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            //???
+            LogFactory.get().info(e.getMessage());
             result = e.toString().getBytes(UTF_8);
         }
         return result;
