@@ -6,6 +6,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
+import com.cs.tomcat.http.DefaultServlet;
 import com.cs.tomcat.http.InvokerServlet;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
@@ -24,30 +25,28 @@ public class HttpProcessor {
         try {
             Context context = request.getContext();
             String uri = request.getUri();
-            if (null == uri) {
-                return;
-            }
 
             //web.XML中存在的话，需要通过反射创建对象servlet容器
             String servletClassName = context.getServletClassName(uri);
+
             if (null != servletClassName) {
                 InvokerServlet.getInstance().service(request, response);
             } else {
-                //HelloServlet处理
-                if ("/hello".equals(uri)) {
-                    HelloServlet helloServlet = new HelloServlet();
-                    helloServlet.doGet(request, response);
-                } else {
-                    //跳至欢迎页
-                    if ("/".equals(uri)) {
-                        uri = WebXMLUtil.getWelcomeFile(request.getContext());
-                    } else {
-                        fileHandlerJUC(uri, response, context, s);
-                    }
+                //进行Web访问时首先所有的请求都会进入Tomcat，然后这些请求都会先流经DefaultServlet，
+                // 接着再流到指定的Servlet上去，如果没有匹配到任何应用指定的servlet，那么就会停留在
+                // DefaultServlet
+
+                DefaultServlet.getInstance().service(request, response);
+                if (Constant.CODE_200 == response.getStatus()){
+                    handle200(s, response);
+                    return;
+                }
+                if (Constant.CODE_404 == response.getStatus()){
+                    handle404(s, uri);
+                    return;
                 }
             }
 
-            handle200(s, response);
         } catch (Exception e) {
             LogFactory.get().error(e);
             handle500(s, e);
@@ -88,51 +87,6 @@ public class HttpProcessor {
             outputStream.write(responseBytes);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * 从Constant.rootFolder目录下面读取文件并返回
-     *
-     * @param uri
-     * @param response
-     */
-    private static void fileHandler(String uri, Response response) {
-        //处理文件
-        String fileName = StrUtil.removePrefix(uri, "/");
-        File file = FileUtil.file(Constant.ROOT_FOLDER, fileName);
-        if (file.exists()) {
-            //获取拓展名
-            String extName = FileUtil.extName(file);
-
-            String fileContent = FileUtil.readUtf8String(file);
-            response.getPrintWriter().println(fileContent);
-        } else {
-            response.getPrintWriter().println("File not found");
-        }
-    }
-
-    /**
-     * 多线程文件读取测试
-     * 读到timeConsume.html 则挂起一秒
-     *
-     * @param uri
-     * @param response
-     */
-    private static void fileHandlerJUC(String uri, Response response, Context context, Socket s) throws IOException {
-        //处理文件
-        String fileName = StrUtil.removePrefix(uri, "/");
-        File file = FileUtil.file(context.getDocBase(), fileName);
-        if (file.exists()) {
-            //文件读取成二进制，放入response的body
-            byte[] body = FileUtil.readBytes(file);
-            response.setBody(body);
-            if (fileName.equals("timeConsume.html")) {
-                ThreadUtil.sleep(1000);
-            }
-        } else {
-//            response.getPrintWriter().println("File not found");
-            handle404(s, uri);
         }
     }
 

@@ -3,6 +3,7 @@ package com.cs.tomcat.http;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.http.HttpResponse;
 import com.cs.tomcat.catalina.Context;
+import com.cs.tomcat.util.Constant;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,8 @@ public class InvokerServlet extends HttpServlet {
 
         Object servletObject = ReflectUtil.newInstance(servletClassName);
         ReflectUtil.invoke(servletObject, "service", request, response);
+
+        response.setStatus(Constant.CODE_200);
     }
 
 }
