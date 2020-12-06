@@ -3,6 +3,7 @@ package com.cs.tomcat.catalina;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.log.LogFactory;
 import com.cs.tomcat.http.Request;
@@ -25,18 +26,27 @@ public class HttpProcessor {
             if (null == uri) {
                 return;
             }
-            //HelloServlet处理
-            if ("/hello".equals(uri)) {
-                HelloServlet helloServlet = new HelloServlet();
-                helloServlet.doGet(request, response);
+
+            //web.XML中存在的话，需要通过反射创建对象servlet容器
+            String servletClassName = context.getServletClassName(uri);
+            if (null != servletClassName) {
+                Object servletObject = ReflectUtil.newInstance(servletClassName);
+                ReflectUtil.invoke(servletObject, "doGet", request, response);
             } else {
-                //跳至欢迎页
-                if ("/".equals(uri)) {
-                    uri = WebXMLUtil.getWelcomeFile(request.getContext());
+                //HelloServlet处理
+                if ("/hello".equals(uri)) {
+                    HelloServlet helloServlet = new HelloServlet();
+                    helloServlet.doGet(request, response);
                 } else {
-                    fileHandlerJUC(uri, response, context, s);
+                    //跳至欢迎页
+                    if ("/".equals(uri)) {
+                        uri = WebXMLUtil.getWelcomeFile(request.getContext());
+                    } else {
+                        fileHandlerJUC(uri, response, context, s);
+                    }
                 }
             }
+
             handle200(s, response);
         } catch (Exception e) {
             LogFactory.get().error(e);

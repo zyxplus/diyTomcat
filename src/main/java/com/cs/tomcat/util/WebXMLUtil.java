@@ -19,7 +19,7 @@ public class WebXMLUtil {
     private static Map<String, String> mimeTypeMapping = new HashMap<>();
 
     public static String getWelcomeFile(Context context) {
-        String xml = FileUtil.readUtf8String(Constant.webXmlFile);
+        String xml = FileUtil.readUtf8String(Constant.WEB_XML_FILE);
         Document d = Jsoup.parse(xml);
         Elements elements = d.select("welcome-file");
         for (Element element : elements) {
@@ -37,7 +37,7 @@ public class WebXMLUtil {
      * HashMap: Key-拓展名，value-互联网媒体类型
      */
     private static void initMimeType() {
-        String xml = FileUtil.readUtf8String(Constant.webXmlFile);
+        String xml = FileUtil.readUtf8String(Constant.WEB_XML_FILE);
         Document d = Jsoup.parse(xml);
         Elements elements = d.select("mime-mapping");
         for (Element element : elements) {

@@ -36,7 +36,8 @@ public class TestTomcat {
     @Test
     public void testHelloTomcat() {
         String html = getContentString("/");
-        Assert.assertEquals(html, "<div style='color:blue' >Hello DIY Tomcat!</div>");
+//        Assert.assertEquals(html, "<div style='color:blue' >Hello DIY Tomcat!</div>");
+        Assert.assertEquals(html, "Hello DIY Tomcat!");
     }
 
     /**
@@ -145,6 +146,16 @@ public class TestTomcat {
         String url = StrUtil.format("http://{}:{}{}", ip, port, uri);
         byte[] http = MiniBrowser.getContentBytes(url, gzip);
         return http;
+    }
+
+
+    /**
+     * 用servlet容器进行请求处理
+     */
+    @Test
+    public void testHelloServlet() {
+        String html = getContentString("/j2ee/hello");
+        Assert.assertEquals(html, "Hello DIY Tomcat!");
     }
 
 
