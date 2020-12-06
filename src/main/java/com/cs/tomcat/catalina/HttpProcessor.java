@@ -35,16 +35,16 @@ public class HttpProcessor {
                 //进行Web访问时首先所有的请求都会进入Tomcat，然后这些请求都会先流经DefaultServlet，
                 // 接着再流到指定的Servlet上去，如果没有匹配到任何应用指定的servlet，那么就会停留在
                 // DefaultServlet
-
                 DefaultServlet.getInstance().service(request, response);
-                if (Constant.CODE_200 == response.getStatus()){
-                    handle200(s, response);
-                    return;
-                }
-                if (Constant.CODE_404 == response.getStatus()){
-                    handle404(s, uri);
-                    return;
-                }
+            }
+
+            if (Constant.CODE_200 == response.getStatus()){
+                handle200(s, response);
+                return;
+            }
+            if (Constant.CODE_404 == response.getStatus()){
+                handle404(s, uri);
+                return;
             }
 
         } catch (Exception e) {
