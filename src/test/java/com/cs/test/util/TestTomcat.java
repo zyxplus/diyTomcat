@@ -188,4 +188,12 @@ public class TestTomcat {
         Assert.assertEquals(html, "mini brow / java1.8");
     }
 
+
+    @Test
+    public void testsetCookie() {
+        String html = getHttpString("/javaweb/setCookie");
+        System.out.println(html);
+        containAssert(html, "Set-Cookie:name:cs(cookie);Expires=");
+    }
+
 }

@@ -9,7 +9,7 @@ public class Constant {
     /**
      * StrUtil.format(Constant.RESPONSE_HEAD_202, contentType)
      */
-    public final static String RESPONSE_HEAD_202 = "HTTP/1.1 200 OK\r\n" + "Content-Type:{}\r\n\r\n";
+    public final static String RESPONSE_HEAD_202 = "HTTP/1.1 200 OK\r\n" + "Content-Type:{}{}\r\n\r\n";
 
     public final static File WEBAPPS_FOLDER = new File(SystemUtil.get("user.dir"), "webapps");
     public final static File ROOT_FOLDER = new File(WEBAPPS_FOLDER, "ROOT");

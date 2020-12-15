@@ -73,7 +73,11 @@ public class HttpProcessor {
         try {
             String contentType = response.getContentType();
             String headText = Constant.RESPONSE_HEAD_202;
-            headText = StrUtil.format(headText, contentType);
+
+            String cookiesHeader = response.getCookiesHeader();
+            headText = StrUtil.format(headText, contentType, cookiesHeader);
+
+
             //把字节数据转化成字节数组
             byte[] head = headText.getBytes();
             byte[] body = response.getBody();
