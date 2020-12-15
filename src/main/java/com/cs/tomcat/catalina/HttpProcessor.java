@@ -11,9 +11,11 @@ import com.cs.tomcat.http.InvokerServlet;
 import com.cs.tomcat.http.Request;
 import com.cs.tomcat.http.Response;
 import com.cs.tomcat.util.Constant;
+import com.cs.tomcat.util.SessionManager;
 import com.cs.tomcat.util.WebXMLUtil;
 import com.cs.tomcat.webappservlet.HelloServlet;
 
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,6 +27,7 @@ public class HttpProcessor {
         try {
             Context context = request.getContext();
             String uri = request.getUri();
+            prepareSession(request, response);
 
             //web.XML中存在的话，需要通过反射创建对象servlet容器
             String servletClassName = context.getServletClassName(uri);
@@ -59,6 +62,12 @@ public class HttpProcessor {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void prepareSession(Request request, Response response) {
+        String jsessionid = request.getJSessionIdFromCookie();
+        HttpSession session = SessionManager.getSession(jsessionid, request, response);
+        request.setSession(session);
     }
 
 
