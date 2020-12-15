@@ -7,10 +7,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.ZipUtil;
 import cn.hutool.log.LogFactory;
-import com.cs.tomcat.http.DefaultServlet;
-import com.cs.tomcat.http.InvokerServlet;
-import com.cs.tomcat.http.Request;
-import com.cs.tomcat.http.Response;
+import com.cs.tomcat.http.*;
 import com.cs.tomcat.util.Constant;
 import com.cs.tomcat.util.SessionManager;
 import com.cs.tomcat.util.WebXMLUtil;
@@ -35,7 +32,10 @@ public class HttpProcessor {
 
             if (null != servletClassName) {
                 InvokerServlet.getInstance().service(request, response);
-            } else {
+            } else if (uri.endsWith(".jsp")) {
+                JspServlet.getInstance().service(request,response);
+            }
+            else {
                 //进行Web访问时首先所有的请求都会进入Tomcat，然后这些请求都会先流经DefaultServlet，
                 // 接着再流到指定的Servlet上去，如果没有匹配到任何应用指定的servlet，那么就会停留在
                 // DefaultServlet

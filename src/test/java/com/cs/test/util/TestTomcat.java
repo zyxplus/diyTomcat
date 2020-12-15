@@ -204,7 +204,18 @@ public class TestTomcat {
         byte[] unzipContent = ZipUtil.unGzip(gzipContent);
         String html = new String(unzipContent);
         System.out.println(html);
+    }
 
+    @Test
+    public void testJsp() {
+        String html = getContentString("/javaweb/");
+        Assert.assertEquals(html, "hello jsp@javaweb");
+    }
+
+    @Test
+    public void testAJsp() {
+        String html = getContentString("/javaweb/a.jsp");
+        System.out.println(html);
     }
 
 

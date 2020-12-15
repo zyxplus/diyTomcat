@@ -29,6 +29,8 @@ public class Constant {
                     "Content-Encoding:gzip" +
                     "\r\n\r\n";
 
+    public static final String WORKFOLDER = SystemUtil.get("user.dir")+File.separator+"work";
+
     /**
      * StrUtil.format(Constant.TEXT_FORMAT_404, uri, uri)
      */
