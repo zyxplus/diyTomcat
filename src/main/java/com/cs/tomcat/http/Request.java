@@ -6,6 +6,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.cs.tomcat.Bootstrap;
+import com.cs.tomcat.catalina.Connector;
 import com.cs.tomcat.catalina.Context;
 import com.cs.tomcat.catalina.Engine;
 import com.cs.tomcat.catalina.Service;
@@ -27,7 +28,7 @@ public class Request extends BaseRequest {
     private String uri;
     private Socket socket;
     private Context context;
-    private Service service;
+    private Connector connector;
     private String method;
     private String queryString;
     private Map<String, String[]> parameterMap;
@@ -36,9 +37,9 @@ public class Request extends BaseRequest {
     private Cookie[] cookies;
     private HttpSession session;
 
-    public Request(Socket socket, Service service) throws IOException {
+    public Request(Socket socket, Connector connector) throws IOException {
         this.socket = socket;
-        this.service = service;
+        this.connector = connector;
         this.parameterMap = new HashMap<>();
         this.headerMap = new HashMap<>();
         parseHttpRequest();
@@ -60,6 +61,10 @@ public class Request extends BaseRequest {
         parseHeaders();
         parseCookies();
 
+    }
+
+    public Connector getConnector() {
+        return connector;
     }
 
     public String getJSessionIdFromCookie(){
@@ -137,6 +142,7 @@ public class Request extends BaseRequest {
      * 解析uri请求中的context
      */
     private void parseContext() {
+        Service service = connector.getService();
         Engine engine = service.getEngine();
         Context context = engine.getDefaultHost().getContext(uri);
         if (null != context) {

@@ -9,7 +9,7 @@ public class Constant {
     /**
      * StrUtil.format(Constant.RESPONSE_HEAD_202, contentType)
      */
-    public final static String RESPONSE_HEAD_202 = "HTTP/1.1 200 OK\r\n" + "Content-Type:{}{}\r\n\r\n";
+    public final static String RESPONSE_HEAD_202 = "HTTP/1.1 202 OK\r\n" + "Content-Type:{}{}\r\n\r\n";
 
     public final static File WEBAPPS_FOLDER = new File(SystemUtil.get("user.dir"), "webapps");
     public final static File ROOT_FOLDER = new File(WEBAPPS_FOLDER, "ROOT");
@@ -18,6 +18,16 @@ public class Constant {
     public final static File SERVER_XML_FILE = new File(CONF_FOLDER, "server.xml");
 
     public static final String RESPONSE_HEAD_404 = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\n\r\n";
+
+    public static final String RESPONSE_HEAD_200 =
+            "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: {}{}" +
+                    "\r\n\r\n";
+
+    public static final String RESPONSE_HEAD_200_GZIP =
+            "HTTP/1.1 200 OK\r\nContent-Type: {}{}\r\n" +
+                    "Content-Encoding:gzip" +
+                    "\r\n\r\n";
 
     /**
      * StrUtil.format(Constant.TEXT_FORMAT_404, uri, uri)

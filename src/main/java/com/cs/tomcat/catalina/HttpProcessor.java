@@ -5,6 +5,7 @@ import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ZipUtil;
 import cn.hutool.log.LogFactory;
 import com.cs.tomcat.http.DefaultServlet;
 import com.cs.tomcat.http.InvokerServlet;
@@ -42,7 +43,8 @@ public class HttpProcessor {
             }
 
             if (Constant.CODE_200 == response.getStatus()){
-                handle200(s, response);
+//                handle200(s, response);
+                handle200(s, request, response);
                 return;
             }
             if (Constant.CODE_404 == response.getStatus()){
@@ -102,6 +104,75 @@ public class HttpProcessor {
             e.printStackTrace();
         }
     }
+
+    private static void handle200(Socket s, Request request, Response response) throws IOException {
+        OutputStream os = s.getOutputStream();
+        String contentType = response.getContentType();
+
+        byte[] body = response.getBody();
+        String cookiesHeader = response.getCookiesHeader();
+
+        boolean gzip = isGzip(request, body, contentType);
+
+        String headText;
+        if (gzip) {
+            headText = Constant.RESPONSE_HEAD_200_GZIP;
+        } else {
+            headText = Constant.RESPONSE_HEAD_200;
+        }
+        headText = StrUtil.format(headText, contentType, cookiesHeader);
+        if (gzip) {
+            body = ZipUtil.gzip(body);
+        }
+        byte[] head = headText.getBytes();
+        byte[] responseBytes = new byte[head.length + body.length];
+        ArrayUtil.copy(head, 0, responseBytes, 0, head.length);
+        ArrayUtil.copy(body, 0, responseBytes, head.length, body.length);
+        os.write(responseBytes, 0, responseBytes.length);
+        os.flush();
+        os.close();
+
+    }
+
+    private static boolean isGzip(Request request, byte[] body, String mimeType) {
+        String acceptEncodings = request.getHeader("Accept-Encoding");
+        if (!StrUtil.containsAny(acceptEncodings, "gzip")){
+            return false;
+        }
+        Connector connector = request.getConnector();
+        if (mimeType.contains(";")) {
+            mimeType = StrUtil.subBefore(mimeType, ";", false);
+        }
+        if (!"on".equals(connector.getCompression())) {
+            return false;
+        }
+        if (body.length < connector.getCompressionMinSize()) {
+            return false;
+        }
+
+        //对某些浏览器内核（gozilla, traviata）不做压缩
+        String userAgents = connector.getNoCompressionUserAgents();
+        String[] eachUserAgents = userAgents.split(",");
+        for (String eachUserAgent : eachUserAgents) {
+            eachUserAgent = eachUserAgent.trim();
+            String userAgent = request.getHeader("User-Agent");
+            if (StrUtil.containsAny(userAgent, eachUserAgent)){
+                return false;
+            }
+        }
+
+        //限制可以压缩的MIME类型
+        String mimeTypes = connector.getCompressableMimeType();
+        String[] eachMineTypes = mimeTypes.split(",");
+        for (String eachMineType : eachMineTypes) {
+            if (mimeType.equals(eachMineType)) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
 
     private static void handle404(Socket s, String uri) throws IOException {
         OutputStream outputStream = s.getOutputStream();

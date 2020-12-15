@@ -4,7 +4,9 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.util.NetUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ZipUtil;
 import com.cs.tomcat.util.ThreadPoolUtil;
+import org.apache.tools.ant.taskdefs.Zip;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -195,5 +197,15 @@ public class TestTomcat {
         System.out.println(html);
         containAssert(html, "Set-Cookie:name:cs(cookie);Expires=");
     }
+
+    @Test
+    public void testGzip() {
+        byte[] gzipContent = getContentBytes("/", true);
+        byte[] unzipContent = ZipUtil.unGzip(gzipContent);
+        String html = new String(unzipContent);
+        System.out.println(html);
+
+    }
+
 
 }
